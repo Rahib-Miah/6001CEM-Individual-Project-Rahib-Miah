@@ -1,0 +1,32 @@
+library(readxl)
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+
+file_path <- file.choose()
+df <- read_excel(file_path, sheet = "2023", skip = 2)
+
+colnames(df) <- c("Age", "Male", "Female", "Total")
+
+df <- df %>%
+  filter(!is.na(Age), !is.na(Male), !is.na(Female)) %>%
+  mutate(
+    Age = as.numeric(Age), 
+    Male = as.numeric(gsub(",", "", Male)), 
+    Female = as.numeric(gsub(",", "", Female))
+  )
+
+df_long <- df %>%
+  select(Age, Male, Female) %>%
+  pivot_longer(cols = c("Male", "Female"), names_to = "Gender", values_to = "Count")
+
+ggplot(df_long, aes(x = factor(Age), y = Count, fill = Gender)) +
+  geom_bar(stat = "identity") +
+  labs(title = "Number of Young Adults Living with Parents by Age and Gender",
+       x = "Age",
+       y = "Number of People") +
+  scale_y_continuous(limits = c(0, 1000000), breaks = seq(0, 1000000, by = 100000), labels = 
+scales::comma) +
+  scale_fill_manual(values = c("Male" = "blue", "Female" = "pink")) +
+  theme_minimal()
+
