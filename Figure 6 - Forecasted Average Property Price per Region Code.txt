@@ -1,0 +1,34 @@
+library(ggplot2)
+library(readxl)
+library(tidyr)
+library(dplyr)
+library(ggsci)  # For larger color palettes
+
+file_path <- "Cleaned_Property_Price_Data.xlsx"  # Replace with actual path
+df <- read_excel(file_path, sheet = 1)
+
+year_columns <- colnames(df)[-1]  # Identify year columns dynamically
+df <- df %>%
+  mutate(across(all_of(year_columns), as.numeric))
+
+df_long <- df %>%
+  pivot_longer(cols = -Region, names_to = "Year", values_to = "Property_Price")
+
+df_long$Year <- as.numeric(df_long$Year)
+
+region_order <- df %>% arrange(desc(`2030`)) %>% pull(Region)
+df_long$Region <- factor(df_long$Region, levels = region_order)
+
+num_colors <- length(unique(df_long$Region))
+color_palette <- pal_d3("category20")(num_colors)  # Use a 20-color palette
+
+plot <- ggplot(df_long, aes(x = Year, y = Property_Price, color = Region, group = Region)) +
+  geom_point() +
+  geom_line() +
+  scale_color_manual(values = color_palette) +  # More distinct colors
+  labs(title = "Projected Property Prices by Region (2025-2030)",
+       x = "Year",
+       y = "Property Price (£)",
+       color = "Region (Ordered by 2030 Value)") +
+  scale_y_continuous(labels = scales::comma_format(big.mark = ",", suffix = "")) +
+  theme_minimal()
