@@ -1,0 +1,48 @@
+library(ggplot2)
+library(fmsb)
+library(dplyr)
+library(tidyr)
+library(readxl)
+library(tibble)
+
+file_path <- "Regional Spiderweb Comparison v4.xlsx"
+data <- read_excel(file_path, sheet = "Spider")
+
+data <- data %>% rename(Region = `Regions`)
+
+data$Region <- as.factor(data$Region)
+
+data_numeric <- data %>% select(-Region) %>% mutate(across(everything(), as.numeric))
+
+data_numeric <- data_numeric %>% mutate(across(everything(), ~(. - min(., na.rm = TRUE)) 
+/ (max(., na.rm = TRUE) - min(., na.rm = TRUE))))
+
+max_values <- apply(data_numeric, 2, max, na.rm = TRUE)
+min_values <- apply(data_numeric, 2, min, na.rm = TRUE)
+
+par(mfrow = c(3, 3), mar = c(3, 3, 3, 3), oma = c(2, 2, 2, 2), cex = 0.9, cex.main = 1.2)
+
+colors <- rainbow(nrow(data))
+
+for (i in 1:nrow(data)) {
+  region_name <- as.character(data$Region[i])
+  region_data <- rbind(max_values, min_values, data_numeric[i, ])
+  rownames(region_data) <- c("Max", "Min", region_name)
+  
+  radarchart(
+    region_data, 
+    axistype = 0, 
+    title = region_name, 
+    pcol = colors[i], 
+    pfcol = adjustcolor(colors[i], alpha.f = 0.4), 
+    plwd = 2, 
+    cglcol = "gray", 
+    cglty = 1, 
+    cglwd = 1.2, 
+    axislabcol = "black", 
+    vlcex = 0.9, # Reduce label size
+    calcex = 0.9 # Reduce axis label size
+  )
+}
+
+par(mfrow = c(1, 1))
