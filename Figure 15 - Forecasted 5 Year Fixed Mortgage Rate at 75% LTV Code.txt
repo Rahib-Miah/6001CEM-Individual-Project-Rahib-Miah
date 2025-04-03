@@ -1,0 +1,31 @@
+library(readxl)
+library(ggplot2)
+library(dplyr)
+
+file_path <- "Forecasted Mortgage Rates.xlsx"
+
+df <- read_excel(file_path, sheet = 1)
+
+colnames(df) <- c("Date", "Mortgage_Rate")
+
+df$Date <- as.Date(df$Date)
+
+df$Mortgage_Rate <- df$Mortgage_Rate * 100
+
+df <- df %>% filter(Date >= as.Date("2020-01-01") & Date <= as.Date("2028-12-31"))
+
+df$Forecast <- ifelse(df$Date >= as.Date("2023-01-01"), "Forecasted", "Actual")
+
+p13 <- ggplot(df, aes(x = Date, y = Mortgage_Rate, color = Forecast)) +
+  geom_line(aes(linetype = Forecast), linewidth = 0.8) +
+  geom_point() +
+  scale_color_manual(values = c("Actual" = "blue", "Forecasted" = "red")) +
+  scale_linetype_manual(values = c("Actual" = "solid", "Forecasted" = "dashed")) +
+  labs(title = "Forecasted 5-Year Fixed Mortgage Rate at 75% LTV (2020 - 2028)",
+       x = "Year", 
+       y = "Mortgage Rate (%)") +
+  scale_y_continuous(labels = scales::number_format(suffix = "%")) +
+  scale_x_date(date_labels = "%Y", date_breaks = "2 years") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
