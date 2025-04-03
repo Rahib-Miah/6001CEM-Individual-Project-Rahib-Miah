@@ -1,0 +1,27 @@
+library(ggplot2)
+library(readxl)
+
+file_path <- "Combined Regional Private Renatl Index and Number of Sold to FTB.xlsx"
+df <- read_excel(file_path, sheet = "2022")
+
+df$Regions <- factor(df$Regions, levels = df$Regions)
+
+p27 <- ggplot(df, aes(x = Regions)) +
+  geom_bar(aes(y = `Number of FTB Sold`), stat = "identity", fill = "skyblue", alpha = 0.7) +
+  geom_line(aes(y = (`Private Rental Index` - min(`Private Rental Index`)) / 
+                    (max(`Private Rental Index`) - min(`Private Rental Index`)) * max(`Number of FTB 
+Sold`), 
+                group = 1), color = "red", linewidth = 1) +
+  geom_point(aes(y = (`Private Rental Index` - min(`Private Rental Index`)) / 
+                     (max(`Private Rental Index`) - min(`Private Rental Index`)) * max(`Number of FTB 
+Sold`)), 
+             color = "red", size = 2) +
+  scale_y_continuous(
+    name = "Number of FTB Sold",
+    sec.axis = sec_axis(~ . * (max(df$`Private Rental Index`) - min(df$`Private Rental Index`)) / 
+                        max(df$`Number of FTB Sold`) + min(df$`Private Rental Index`), 
+                        name = "Private Rental Index")
+  ) +
+  labs(title = "Regional Private Rental Index and First-Time Buyer Sales in 2022", x = 
+"Regions") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
