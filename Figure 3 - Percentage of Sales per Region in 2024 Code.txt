@@ -1,0 +1,22 @@
+library(ggplot2)
+library(readxl)
+library(dplyr)
+library(tidyr)
+
+df <- read_excel("Combined_Regional_Housing_Availability.xlsx", sheet = "Combined", skip 
+= 2)
+colnames(df) <- c("Region", "2020", "2021", "2022", "2023", "2024", "Total")
+df <- df %>% drop_na(Region) %>% filter(!Region %in% c("UNKOWN", "Total"))
+
+df$Percentage <- df$`2024` / sum(df$`2024`) * 100
+
+df$Label <- paste0(round(df$Percentage, 1), "%")
+
+p2 <- ggplot(df, aes(x = "", y = `2024`, fill = Region)) +
+  geom_bar(stat = "identity", width = 1, color = "black") +
+  coord_polar(theta = "y", start = 0) +
+  labs(title = "Percentage of 2024 Sales under £500,000 in England and Wales", x = NULL, y = 
+NULL, fill = "Region") +
+  theme_void() +
+  geom_text(aes(label = Label), position = position_stack(vjust = 0.5), size = 3, color = 
+"white")
