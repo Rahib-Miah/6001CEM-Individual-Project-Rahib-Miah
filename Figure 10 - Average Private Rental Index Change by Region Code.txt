@@ -1,0 +1,29 @@
+library(ggplot2)
+library(dplyr)
+library(tidyr)
+library(readxl)
+
+data <- read_excel("iphrpreferencetablejanuary2024accessible1.xlsx", sheet = "Sheet1")
+
+data_long <- data %>%
+  pivot_longer(cols = -`Month/Year`, names_to = "Year", values_to = "Index") %>%
+  mutate(Year = as.integer(Year))
+
+latest_year <- max(data_long$Year)
+data_sorted <- data_long %>% 
+  filter(Year == latest_year) %>% 
+  arrange(desc(Index))
+ordered_regions <- data_sorted$`Month/Year`
+
+data_long$`Month/Year` <- factor(data_long$`Month/Year`, levels = ordered_regions)
+
+p9 <- ggplot(data_long, aes(x = Year, y = Index, color = `Month/Year`, group = 
+`Month/Year`)) +
+  geom_line() +
+  geom_point() +
+  scale_color_manual(values = scales::hue_pal()(length(ordered_regions))) +
+  labs(title = "Yearly Average Index of Private Housing Rental Pricing Over Time by Region",
+       x = "Year",
+       y = "Index Value",
+       color = "Region/Country (Ordered by Latest Value)") +
+  theme_minimal()
