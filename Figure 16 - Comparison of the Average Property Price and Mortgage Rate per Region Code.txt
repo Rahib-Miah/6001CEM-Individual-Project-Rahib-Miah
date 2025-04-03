@@ -1,0 +1,57 @@
+library(ggplot2)
+library(readxl)
+library(dplyr)
+library(tidyr)
+library(scales)
+
+file_path <- file.choose()
+house_prices <- read_excel(file_path, sheet = "Average Price")
+                                                                                 
+file_path <- file.choose()
+mortgage_rates <- read_excel(file_path, sheet = "Figure 1")
+
+colnames(house_prices)[1] <- "Month"
+colnames(mortgage_rates) <- c("Month", "Mortgage Rate")
+
+mortgage_rates$`Mortgage Rate` <- mortgage_rates$`Mortgage Rate` * 100
+
+merged_data <- left_join(house_prices, mortgage_rates, by = "Month")
+
+merged_data$Month <- as.Date(paste0("01-", merged_data$Month), format = "%d-%b %Y")
+
+long_data <- merged_data %>%
+  pivot_longer(cols = -c(Month, `Mortgage Rate`), names_to = "Region", values_to = 
+"House_Price")
+
+p23 <- ggplot(long_data, aes(x = Month)) +
+  geom_line(aes(y = House_Price, color = "House Price"), size = 0.8) +
+  geom_point(aes(y = House_Price, color = "House Price"), size = 1, alpha = 0.7) +
+  geom_line(aes(y = `Mortgage Rate` * max(long_data$House_Price, na.rm = TRUE) / 
+max(merged_data$`Mortgage Rate`, na.rm = TRUE), 
+                color = "Mortgage Rate"), size = 0.8, linetype = "dashed") +
+  facet_wrap(~ Region, scales = "free_y", ncol = 3) +
+  scale_y_continuous(
+    name = "Average House Price (£)",
+    labels = scales::comma,
+    sec.axis = sec_axis(~ . * max(merged_data$`Mortgage Rate`, na.rm = TRUE) / 
+max(long_data$House_Price, na.rm = TRUE), 
+                         name = "Mortgage Rate (%)")
+  ) +
+  labs(title = "Regional House Prices and Mortgage Rates Over Time",
+       x = "Year", 
+       color = "Legend") +
+  scale_color_manual(values = c("House Price" = "#1f77b4", "Mortgage Rate" = "#d62728")) 
++
+  theme_minimal() +
+  theme(
+        legend.position = "bottom",
+        legend.title = element_text(size = 12, face = "bold"),
+        legend.text = element_text(size = 10),
+        axis.text.x = element_text(angle = 45, hjust = 1, size = 10),
+        axis.text.y = element_text(size = 10),
+        axis.title = element_text(size = 12, face = "bold"),
+        strip.text = element_text(size = 14, face = "bold"),
+        plot.title = element_text(hjust = 0.5, size = 18, face = "bold"),
+        panel.grid.major = element_line(size = 0.5, color = "grey80"),
+        panel.grid.minor = element_blank(),
+        panel.border = element_rect(color = "black", fill = NA, size = 1))
