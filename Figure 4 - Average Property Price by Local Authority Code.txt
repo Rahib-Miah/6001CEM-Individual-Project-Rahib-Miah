@@ -1,0 +1,35 @@
+library(sf)
+library(ggplot2)
+library(dplyr)
+library(readxl)
+
+geojson_file <- 
+"Local_Authority_Districts_December_2023_Boundaries_UK_BUC_4615499699084237502.
+geojson"
+excel_file <- "All UK District House Prices.xlsx"
+
+uk_map <- st_read(geojson_file)
+property_data <- read_excel(excel_file, sheet = 1)
+
+colnames(property_data) <- gsub("[[:punct:]]", "", colnames(property_data))
+print(colnames(property_data))  # Check column names
+
+property_data <- property_data %>%
+  rename(LAD23CD = `AreaCode`, value = `HousePrices`) %>%
+  mutate(LAD23CD = toupper(trimws(LAD23CD)))
+
+uk_map <- uk_map %>%
+  mutate(LAD23CD = toupper(trimws(LAD23CD)))
+
+missing_matches <- anti_join(property_data, uk_map, by = "LAD23CD")
+print(missing_matches)
+
+uk_map <- left_join(uk_map, property_data, by = "LAD23CD")
+
+ggplot(data = uk_map) +
+  geom_sf(aes(fill = value), color = "black", size = 0.2) +
+  scale_fill_viridis_c(option = "plasma", na.value = "grey80") +
+  theme_minimal() +
+  labs(title = "UK Property Price by Local Authority", fill = "Property Price (£)") +
+  theme(axis.text = element_blank(), axis.ticks = element_blank())
+
