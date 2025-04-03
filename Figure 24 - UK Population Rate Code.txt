@@ -1,0 +1,18 @@
+library(readxl)
+library(ggplot2)
+
+data <- read_excel("Scrubed_ukpopulationestimates183820231.xlsx", sheet = "Table 1")
+
+colnames(data) <- c("Year", "Population")
+
+data$Year <- as.numeric(data$Year)
+data$Population <- as.numeric(data$Population)
+
+p20 <- ggplot(data, aes(x = Year, y = Population)) +
+  geom_line(color = "blue", linewidth = 1) +  
+  geom_point(color = "blue") +  
+  labs(title = "UK Population Over Time",
+       x = "Year",
+       y = "Population") +
+  theme_minimal()
+
