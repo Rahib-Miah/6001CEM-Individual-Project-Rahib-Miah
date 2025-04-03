@@ -1,0 +1,33 @@
+library(ggplot2)
+library(dplyr)
+library(tidyr)
+library(readxl)
+
+data <- read_excel("iphrpreferencetablejanuary2024accessible1.xlsx", sheet = "Sheet1")
+
+data_long <- data %>%
+  pivot_longer(cols = -`Month/Year`, names_to = "Year", values_to = "Index") %>%
+  mutate(Year = as.integer(Year))
+
+data_filtered <- data_long %>%
+  filter(Year >= 2024 & Year <= 2030)
+
+latest_year <- 2030
+data_sorted <- data_filtered %>% 
+  filter(Year == latest_year) %>% 
+  arrange(desc(Index))
+ordered_regions <- data_sorted$`Month/Year`
+
+data_filtered$`Month/Year` <- factor(data_filtered$`Month/Year`, levels = ordered_regions)
+
+p10 <- ggplot(data_filtered, aes(x = Year, y = Index, color = `Month/Year`, group = 
+`Month/Year`)) +
+  geom_line() +
+  geom_point() +
+  scale_color_manual(values = scales::hue_pal()(length(ordered_regions))) +
+  labs(title = "Forecast Yearly Average Index of Private Housing Rental Pricing Over Time by 
+Region (2024-2030)",
+       x = "Year",
+       y = "Index Value",
+       color = "Region/Country") +
+  theme_minimal()
