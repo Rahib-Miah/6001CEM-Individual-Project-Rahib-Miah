@@ -1,0 +1,23 @@
+library(readxl)
+library(ggplot2)
+
+file_path <- "Mortgage Rates.xlsx"
+
+df <- read_excel(file_path, sheet = "Figure 1", skip = 7)
+
+colnames(df) <- c("Date", "Mortgage_Rate")
+
+df$Date <- as.Date(paste0("01-", df$Date), format="%d-%b-%Y")
+
+df$Mortgage_Rate <- df$Mortgage_Rate * 100
+
+p12 <- ggplot(df, aes(x = Date, y = Mortgage_Rate)) +
+  geom_line(color = "blue") +
+  geom_point(color = "red") +
+  labs(title = "5-Year Fixed Mortgage Rate at 75% LTV (2005 - Present)",
+       x = "Year", 
+       y = "Mortgage Rate (%)") +
+  scale_y_continuous(labels = scales::number_format(suffix = "%")) +
+  scale_x_date(date_labels = "%Y", date_breaks = "2 years") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
