@@ -1,0 +1,19 @@
+library(ggplot2)
+library(readxl)
+
+data <- read_excel("Combined Regional Population and Jobs Data.xlsx", sheet = "P-J 
+Combined")
+
+data_selected <- data[, c("Regions", "Type", "2023")]
+names(data_selected) <- c("Region", "Type", "Value")
+
+data_selected$Type <- factor(data_selected$Type, levels = c("Population", "Jobs"))
+
+p18 <- ggplot(data_selected, aes(x = Region, y = Value, fill = Type)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  labs(title = "Population and Jobs by Region (2023)", x = "Region", y = "Number of People") +
+  theme_minimal() +
+  scale_fill_manual(values = c("Population" = "blue", "Jobs" = "red")) +
+  theme(axis.text.x = element_text(angle = 30, hjust = 1)) +
+  scale_y_continuous(labels = scales::comma, breaks = scales::pretty_breaks(n = 10))
+
