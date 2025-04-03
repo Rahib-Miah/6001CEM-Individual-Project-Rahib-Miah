@@ -1,0 +1,18 @@
+library(ggplot2)
+library(readxl)
+
+file_path <- "Regional Average House Price and Number Sold under 500k.xlsx"
+df <- read_excel(file_path, sheet = "2024")
+
+df$Regions <- factor(df$Regions, levels = df$Regions)
+
+p25 <- ggplot(df, aes(x = Regions)) +
+  geom_bar(aes(y = `Number Sold`), stat = "identity", fill = "skyblue", alpha = 0.7) +
+  geom_line(aes(y = `Average Price` / 10, group = 1), color = "red", linewidth = 1) +
+  geom_point(aes(y = `Average Price` / 10), color = "red", size = 2) +
+  scale_y_continuous(
+    name = "Number Sold",
+    sec.axis = sec_axis(~ . * 10, name = "Average Price (£)")
+  ) +
+  labs(title = "Regional House Prices and Sales Under £500k in 2024", x = "Regions") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
