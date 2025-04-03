@@ -1,0 +1,24 @@
+library(readxl)
+library(ggplot2)
+
+data <- read_excel("Yearly Percentage Change in Employment Rate and Population.xlsx", 
+sheet = "Data")
+
+colnames(data) <- c("Year", "EmploymentRateChange", "PopulationChange")
+
+data$Year <- as.numeric(data$Year)
+data$EmploymentRateChange <- as.numeric(data$EmploymentRateChange)
+data$PopulationChange <- as.numeric(data$PopulationChange)
+
+p21 <- ggplot(data, aes(x = Year)) +
+  geom_line(aes(y = EmploymentRateChange, color = "Employment Rate"), linewidth = 1) +  
+  geom_point(aes(y = EmploymentRateChange, color = "Employment Rate")) +
+  geom_line(aes(y = PopulationChange, color = "Population"), linewidth = 1) +  
+  geom_point(aes(y = PopulationChange, color = "Population")) +
+  labs(title = "Yearly Percentage Change in Employment Rate and Population",
+       x = "Year",
+       y = "Percentage Change (%)",
+       color = "Legend") +
+  scale_color_manual(values = c("Employment Rate" = "red", "Population" = "blue")) +
+  theme_minimal()
+
