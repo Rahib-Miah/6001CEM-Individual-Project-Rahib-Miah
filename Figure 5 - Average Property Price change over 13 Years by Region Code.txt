@@ -1,0 +1,51 @@
+library(ggplot2)
+library(dplyr)
+library(tidyr)
+library(readxl)
+library(ggrepel)
+
+file_path <- file.choose("Average_House_Price_Regionally_2011+.xlsx")
+df <- read_excel(file_path, sheet = "Average Price")
+
+colnames(df) <- as.character(df[2, ])
+df <- df[-c(1,2), ]
+
+df <- rename(df, Date = colnames(df)[1])
+
+df$Date <- as.Date(paste0("01-", df$Date), format="%d-%b %Y")
+
+cols_to_remove <- c("Great Britain", "England")
+df <- df[ , !(colnames(df) %in% cols_to_remove)]
+
+df_long <- pivot_longer(df, cols = -Date, names_to = "Region", values_to = "Price")
+
+df_long$Price <- as.numeric(df_long$Price)
+
+df_long <- na.omit(df_long)
+
+df_long$Year <- format(df_long$Date, "%Y")
+df_yearly <- df_long %>% 
+  mutate(Region = ifelse(Region == "Yorkshire and The Humber", "Yorkshire", Region)) %>% 
+  group_by(Year, Region) %>% 
+  summarise(Average_Price = mean(Price, na.rm = TRUE))
+
+df_yearly$Year <- as.numeric(df_yearly$Year)
+
+ggplot(df_yearly, aes(x = Year, y = Average_Price, group = Region, color = Region)) +
+  scale_color_manual(values = c("United Kingdom" = "black", 
+setNames(sample(rainbow(length(unique(df_yearly$Region)) - 1), 
+length(unique(df_yearly$Region)) - 1), setdiff(unique(df_yearly$Region), "United 
+Kingdom")))) +
+  geom_line(linewidth = 1) +
+  geom_point(alpha = 0.6) +
+  geom_text_repel(data = df_yearly %>% group_by(Region) %>% filter(Year == max(Year)),
+                  aes(label = Region), nudge_x = 3, nudge_y = 1, hjust = 0, size = 3, segment.color = 
+"gray", segment.size = 0.25, angle = 0, 
+                  direction = "y", segment.color = NA, box.padding = 0.5, force = 2) +
+  scale_y_continuous(labels = scales::comma_format()) +
+  scale_x_continuous(breaks = seq(min(df_yearly$Year), max(df_yearly$Year), by = 1)) +
+  labs(title = "Yearly Average Property Price by Country/Region",
+       x = "Year",
+       y = "Average House Price (£)") +
+  theme_minimal() +
+  theme(legend.position = "none", axis.text.x = element_text(angle = 45, hjust = 1))
