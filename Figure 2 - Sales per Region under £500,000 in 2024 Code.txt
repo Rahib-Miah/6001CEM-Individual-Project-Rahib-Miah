@@ -1,0 +1,16 @@
+library(ggplot2)
+library(readxl)
+library(dplyr)
+library(tidyr)
+
+df <- read_excel("Combined_Regional_Housing_Availability.xlsx", sheet = "Combined", skip 
+= 2)
+colnames(df) <- c("Region", "2020", "2021", "2022", "2023", "2024", "Total")
+df <- df %>% drop_na(Region) %>% filter(!Region %in% c("UNKOWN", "Total"))
+
+p1 <- ggplot(df, aes(x = reorder(Region, Region), y = `2024`, fill = Region)) +
+  geom_bar(stat = "identity") +
+  labs(title = "Total Sales under £500,000 by Region in 2024", x = "Region", y = "Number of 
+Sales") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
