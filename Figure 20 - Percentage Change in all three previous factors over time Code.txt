@@ -1,0 +1,35 @@
+library(ggplot2)
+library(readxl)
+library(gridExtra)
+
+file_path <- "Scrubed_Help_to_Buy_Tables_Regional_Just_Listed_Data.xlsx"
+df <- read_excel(file_path, sheet = "Listed Data")
+
+df$Year <- as.numeric(df$Year)
+
+df_filtered <- subset(df, Type %in% c("PC1", "PC2", "PC3"))
+
+regions <- unique(df_filtered$Region)
+
+plot_list <- list()
+for (region in regions) {
+  region_data <- subset(df_filtered, Region == region)
+  
+  p <- ggplot(region_data, aes(x = Year, y = Value, color = Type)) +
+    geom_line(linewidth = 1) +
+    geom_point() +
+    scale_color_manual(values = c("PC1" = "green", "PC2" = "orange", "PC3" = "purple")) +
+    ggtitle(region) +
+    xlab("Year") +
+    ylab("Percentage") +
+    scale_x_continuous(breaks = seq(min(region_data$Year, na.rm = TRUE), 
+max(region_data$Year, na.rm = TRUE), by = 2)) +
+    theme_minimal() +
+    theme(legend.position = "right")
+  
+  plot_list[[region]] <- p
+}
+
+grid.arrange(grobs = plot_list, ncol = 3, top = "Help to Buy Factors Yearly Percentage 
+Change", bottom = grid::textGrob("Legend: Property Price (PC1), Household Income (PC2), 
+Number of Sales (PC3)", gp = grid::gpar(fontsize = 12)))
