@@ -1,0 +1,18 @@
+library(readxl)
+library(ggplot2)
+
+data <- read_excel("Scrubbed_series-080225.xlsx", sheet = "data")
+
+colnames(data) <- c("Year", "EmploymentRate")
+
+data$Year <- as.numeric(data$Year)
+data$EmploymentRate <- as.numeric(data$EmploymentRate)
+
+p19 <- ggplot(data, aes(x = Year, y = EmploymentRate)) +
+  geom_line(color = "red", linewidth = 1) +  
+  geom_point(color = "red") +  
+  labs(title = "Employment Rate Over Time (UK)",
+       x = "Year",
+       y = "Employment Rate (%)") +
+  theme_minimal()
+
