@@ -1,0 +1,29 @@
+library(ggplot2)
+library(readxl)
+library(gridExtra)
+
+file_path <- "Scrubed_Help_to_Buy_Tables_Regional_Just_Listed_Data.xlsx"
+df <- read_excel(file_path, sheet = "Listed Data")
+
+df_filtered <- subset(df, Type == "Number of Sales")
+
+regions <- unique(df_filtered$Region)
+
+plot_list <- list()
+for (region in regions) {
+  region_data <- subset(df_filtered, Region == region)
+  
+  p <- ggplot(region_data, aes(x = Year, y = Value)) +
+    geom_line(color = "purple") +
+    geom_point(color = "red") +
+    ggtitle(region) +
+    xlab("Year") +
+    ylab("Number of Sales") +
+    scale_x_continuous(breaks = seq(min(region_data$Year), max(region_data$Year), by = 2)) 
++
+    theme_minimal()
+  
+  plot_list[[region]] <- p
+}
+
+grid.arrange(grobs = plot_list, ncol = 3)
